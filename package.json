@@ -1,0 +1,20 @@
+{
+  "name": "hue-weather-telegram",
+  "version": "1.0.0",
+  "description": "Gửi thông báo thời tiết Huế mỗi ngày qua Telegram Bot",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test:send": "node src/index.js --send-now",
+    "get:chatid": "node src/get-chat-id.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "dotenv": "^16.4.7",
+    "node-cron": "^3.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
