@@ -18,6 +18,6 @@ Bot Node.js gửi lời chào (6h & 22h30) và báo cáo (8h30 & 18h30: Thời t
    ```
 
 4. **Lệnh vận hành:**
-   * **Gửi thử ngay:** `npm run test:send`
+   * **Gửi thử ngay:** `npm run send`
    * **Chạy tự động:** `npm start`
    * **Chạy ngầm (PM2):** `pm2 start src/index.js --name "telegram-daily-bot"`
