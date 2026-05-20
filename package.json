@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "test:send": "node src/index.js --send-now",
+    "send": "node src/index.js --send-now",
     "get:chatid": "node src/get-chat-id.js"
   },
   "dependencies": {
