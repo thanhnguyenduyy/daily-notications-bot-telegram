@@ -1,0 +1,30 @@
+name: Morning Greeting
+
+on:
+  schedule:
+    - cron: "0 23 * * *" # 06:00 Việt Nam
+  workflow_dispatch:
+
+jobs:
+  send-message:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install
+
+      - run: npm run send
+        env:
+          MESSAGE_TYPE: morning
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          LATITUDE: ${{ secrets.LATITUDE }}
+          LONGITUDE: ${{ secrets.LONGITUDE }}
+          LOCATION_NAME: ${{ secrets.LOCATION_NAME }}
+          TIMEZONE: ${{ secrets.TIMEZONE }}
+          SEND_ON_START: "true"
