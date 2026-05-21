@@ -8,19 +8,29 @@ import { fetchPetrolimexFuel, formatFuelMessage } from './fuel.js';
 const config = {
   botToken: process.env.TELEGRAM_BOT_TOKEN,
   chatId: process.env.TELEGRAM_CHAT_ID,
+
+  // Dùng khi chạy app liên tục ở local/VPS
   cronTime: process.env.CRON_TIME || '30 8,18 * * *',
   cronGreetingMorning: process.env.CRON_GREETING_MORNING || '0 6 * * *',
   cronGreetingNight: process.env.CRON_GREETING_NIGHT || '30 22 * * *',
+
   timezone: process.env.TIMEZONE || 'Asia/Ho_Chi_Minh',
   latitude: Number(process.env.LATITUDE || 16.4637),
   longitude: Number(process.env.LONGITUDE || 107.5909),
   locationName: process.env.LOCATION_NAME || 'Huế',
+
+  // GitHub Actions nên set SEND_ON_START=true
   sendOnStart: String(process.env.SEND_ON_START || 'false').toLowerCase() === 'true',
+
+  // GitHub Actions dùng biến này để phân biệt loại tin nhắn
+  // morning | full | night
+  messageType: process.env.MESSAGE_TYPE || 'full',
+
   accuWeatherApiKey: process.env.ACCUWEATHER_API_KEY,
   accuWeatherLocationKey: process.env.ACCUWEATHER_LOCATION_KEY || '356204'
 };
 
-// Gửi lời chào (chỉ 1 dòng chào, không kèm thông tin)
+// Gửi lời chào, chỉ 1 dòng chào, không kèm thông tin
 async function sendGreeting(message) {
   console.log(`[${new Date().toISOString()}] Đang gửi lời chào...`);
 
@@ -33,11 +43,22 @@ async function sendGreeting(message) {
   console.log(`[${new Date().toISOString()}] Đã gửi lời chào thành công.`);
 }
 
-// Gửi thông tin đầy đủ (Thời tiết + Vàng + Xăng), không kèm lời chào
+// Gửi lời chào buổi sáng
+async function sendMorningGreeting() {
+  await sendGreeting('🌅 Chào buổi sáng! Chúc bạn một ngày mới tràn đầy năng lượng.');
+}
+
+// Gửi lời chào buổi tối
+async function sendNightGreeting() {
+  await sendGreeting('🌙 Chúc bạn buổi tối vui vẻ và ngủ ngon.');
+}
+
+// Gửi thông tin đầy đủ: Thời tiết + Vàng + Xăng
 async function sendDailyInfo() {
   console.log(`[${new Date().toISOString()}] Đang lấy thời tiết ${config.locationName}...`);
 
   let weatherMessage = '';
+
   try {
     const weather = await fetchHueWeather({
       latitude: config.latitude,
@@ -46,10 +67,15 @@ async function sendDailyInfo() {
       accuWeatherApiKey: config.accuWeatherApiKey,
       accuWeatherLocationKey: config.accuWeatherLocationKey
     });
+
     weatherMessage = formatWeatherMessage(weather, config.locationName);
   } catch (error) {
     console.error('Lỗi lấy thời tiết:', error.message);
-    const formattedLocation = config.locationName.startsWith('TP.') ? config.locationName : `TP. ${config.locationName}`;
+
+    const formattedLocation = config.locationName.startsWith('TP.')
+      ? config.locationName
+      : `TP. ${config.locationName}`;
+
     weatherMessage = `[🌤️ Thời tiết ${formattedLocation}] - Hiện tại\n\nKhông lấy được thông tin thời tiết lúc này.`;
   }
 
@@ -88,6 +114,31 @@ async function sendDailyInfo() {
   console.log(`[${new Date().toISOString()}] Đã gửi thông báo đầy đủ thành công.`);
 }
 
+// Gửi theo MESSAGE_TYPE từ GitHub Actions
+async function sendByMessageType() {
+  const messageType = String(config.messageType || 'full').toLowerCase();
+
+  console.log(`[${new Date().toISOString()}] MESSAGE_TYPE = ${messageType}`);
+
+  if (messageType === 'morning') {
+    await sendMorningGreeting();
+    return;
+  }
+
+  if (messageType === 'night') {
+    await sendNightGreeting();
+    return;
+  }
+
+  if (messageType === 'full') {
+    await sendDailyInfo();
+    return;
+  }
+
+  console.warn(`MESSAGE_TYPE không hợp lệ: ${messageType}. Sẽ gửi thông tin đầy đủ mặc định.`);
+  await sendDailyInfo();
+}
+
 async function main() {
   const isSendNow = process.argv.includes('--send-now');
 
@@ -96,49 +147,57 @@ async function main() {
     process.exit(1);
   }
 
+  // Dùng cho GitHub Actions hoặc test nhanh local:
+  // npm run send -- --send-now
+  if (isSendNow || config.sendOnStart) {
+    await sendByMessageType();
+    return;
+  }
+
+  // Phần dưới chỉ dùng khi bạn chạy app liên tục bằng local/VPS/PM2.
+  // GitHub Actions không cần node-cron vì GitHub đã tự schedule bằng file .yml.
   if (!cron.validate(config.cronTime)) {
     console.error(`CRON_TIME không hợp lệ: ${config.cronTime}`);
     process.exit(1);
   }
 
-  if (isSendNow) {
-    await sendDailyInfo();
-    return;
+  if (!cron.validate(config.cronGreetingMorning)) {
+    console.error(`CRON_GREETING_MORNING không hợp lệ: ${config.cronGreetingMorning}`);
+    process.exit(1);
   }
 
-  if (config.sendOnStart) {
-    await sendDailyInfo().catch((error) => {
-      console.error('Gửi khi khởi động thất bại:', error.message);
-    });
+  if (!cron.validate(config.cronGreetingNight)) {
+    console.error(`CRON_GREETING_NIGHT không hợp lệ: ${config.cronGreetingNight}`);
+    process.exit(1);
   }
 
-  // Lịch gửi thông tin đầy đủ: 8:30 sáng và 18:30 tối
+  // Lịch gửi thông tin đầy đủ: ví dụ 8:30 sáng và 18:30 tối
   cron.schedule(
     config.cronTime,
     () => {
       sendDailyInfo().catch((error) => {
-        console.error('Gửi thông báo thất bại:', error.message);
+        console.error('Gửi thông báo đầy đủ thất bại:', error.message);
       });
     },
     { timezone: config.timezone }
   );
 
-  // Lịch gửi lời chào buổi sáng: 6:00 sáng
+  // Lịch gửi lời chào buổi sáng
   cron.schedule(
     config.cronGreetingMorning,
     () => {
-      sendGreeting('🌅 Chào buổi sáng! Chúc bạn một ngày mới tràn đầy năng lượng.').catch((error) => {
+      sendMorningGreeting().catch((error) => {
         console.error('Gửi lời chào sáng thất bại:', error.message);
       });
     },
     { timezone: config.timezone }
   );
 
-  // Lịch gửi lời chào buổi tối: 22:30 tối
+  // Lịch gửi lời chào buổi tối
   cron.schedule(
     config.cronGreetingNight,
     () => {
-      sendGreeting('🌙 Chúc bạn buổi tối vui vẻ và ngủ ngon.').catch((error) => {
+      sendNightGreeting().catch((error) => {
         console.error('Gửi lời chào tối thất bại:', error.message);
       });
     },
