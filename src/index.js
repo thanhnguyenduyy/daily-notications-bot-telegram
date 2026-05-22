@@ -34,10 +34,14 @@ const config = {
 async function sendGreeting(message) {
   console.log(`[${new Date().toISOString()}] Đang gửi lời chào...`);
 
+  const now = new Date();
+  const localTime = now.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+  const fullMessage = `${message}\n\n⏰ ${localTime}`;
+
   await sendTelegramMessage({
     botToken: config.botToken,
     chatId: config.chatId,
-    text: message
+    text: fullMessage
   });
 
   console.log(`[${new Date().toISOString()}] Đã gửi lời chào thành công.`);
@@ -105,10 +109,14 @@ async function sendDailyInfo() {
 
   const message = `${weatherMessage}\n\n--\n\n${goldMessage}\n\n--\n\n${fuelMessage}`;
 
+  const now = new Date();
+  const localTime = now.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+  const fullMessage = `${message}\n\n⏰ ${localTime}`;
+
   await sendTelegramMessage({
     botToken: config.botToken,
     chatId: config.chatId,
-    text: message
+    text: fullMessage
   });
 
   console.log(`[${new Date().toISOString()}] Đã gửi thông báo đầy đủ thành công.`);
