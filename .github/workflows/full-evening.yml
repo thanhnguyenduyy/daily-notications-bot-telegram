@@ -2,7 +2,7 @@ name: Full Info Evening
 
 on:
   schedule:
-    - cron: "30 11 * * *" # 18:30 Việt Nam
+    - cron: "30 7 * * *" # 14:30 Việt Nam
   workflow_dispatch:
 
 jobs:

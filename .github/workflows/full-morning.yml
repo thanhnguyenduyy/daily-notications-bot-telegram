@@ -2,7 +2,7 @@ name: Full Info Morning
 
 on:
   schedule:
-    - cron: "30 1 * * *" # 08:30 Việt Nam
+    - cron: "30 21 * * *" # 04:30 Việt Nam
   workflow_dispatch:
 
 jobs:

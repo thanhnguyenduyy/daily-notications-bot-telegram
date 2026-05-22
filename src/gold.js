@@ -1,6 +1,7 @@
-import * as cheerio from 'cheerio';
+﻿import * as cheerio from 'cheerio';
 
 const DUY_MONG_URL = 'https://giavangduymong.com/';
+const ADD_PRICE = 200000;
 
 function cleanText(text = '') {
   return text
@@ -85,14 +86,26 @@ export async function fetchDuyMongGold() {
     throw new Error('Không tìm thấy dòng Vàng Rồng Vàng Duy Mong 99.99 trên trang.');
   }
 
+  const adjustedBuyPrice = formatPriceNumber(parsePriceNumber(buyPrice) + ADD_PRICE);
+  const adjustedSellPrice = formatPriceNumber(parsePriceNumber(sellPrice) + ADD_PRICE);
+
   return {
     source: 'Duy Mong Huế',
     updatedAt,
     name: goldName,
-    buyPrice,
-    sellPrice,
+    buyPrice: adjustedBuyPrice,
+    sellPrice: adjustedSellPrice,
     unit: 'đ/chỉ'
   };
+}
+
+function parsePriceNumber(price = '') {
+  const digits = String(price).replace(/[^\d]/g, '');
+  return digits ? Number(digits) : NaN;
+}
+
+function formatPriceNumber(value) {
+  return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
 function formatGoldDate(dateStr) {
