@@ -141,6 +141,14 @@ async function sendByMessageType() {
 
 async function main() {
   const isSendNow = process.argv.includes('--send-now');
+  const now = new Date();
+  const options = { timeZone: config.timezone, hour12: false };
+  const localTime = now.toLocaleString('vi-VN', options);
+
+  console.log(`\n${'='.repeat(60)}`);
+  console.log(`[BOT START TIME] ${now.toISOString()}`);
+  console.log(`[LOCAL TIME] ${localTime} (Timezone: ${config.timezone})`);
+  console.log(`${'='.repeat(60)}\n`);
 
   if (!config.botToken || !config.chatId) {
     console.error('Thiếu TELEGRAM_BOT_TOKEN hoặc TELEGRAM_CHAT_ID. Hãy copy .env.example thành .env rồi điền thông tin.');
@@ -150,6 +158,7 @@ async function main() {
   // Dùng cho GitHub Actions hoặc test nhanh local:
   // npm run send -- --send-now
   if (isSendNow || config.sendOnStart) {
+    console.log(`[SEND NOW MODE] Sending message type: ${config.messageType}`);
     await sendByMessageType();
     return;
   }
@@ -172,9 +181,13 @@ async function main() {
   }
 
   // Lịch gửi thông tin đầy đủ: ví dụ 8:30 sáng và 18:30 tối
+  console.log(`[CRON SETUP] Setting up full info schedule: ${config.cronTime} (${config.timezone})`);
   cron.schedule(
     config.cronTime,
     () => {
+      const triggerTime = new Date();
+      const triggerLocalTime = triggerTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+      console.log(`[CRON TRIGGERED] Full info at ${triggerTime.toISOString()} / ${triggerLocalTime}`);
       sendDailyInfo().catch((error) => {
         console.error('Gửi thông báo đầy đủ thất bại:', error.message);
       });
@@ -183,9 +196,13 @@ async function main() {
   );
 
   // Lịch gửi lời chào buổi sáng
+  console.log(`[CRON SETUP] Setting up morning greeting schedule: ${config.cronGreetingMorning} (${config.timezone})`);
   cron.schedule(
     config.cronGreetingMorning,
     () => {
+      const triggerTime = new Date();
+      const triggerLocalTime = triggerTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+      console.log(`[CRON TRIGGERED] Morning greeting at ${triggerTime.toISOString()} / ${triggerLocalTime}`);
       sendMorningGreeting().catch((error) => {
         console.error('Gửi lời chào sáng thất bại:', error.message);
       });
@@ -194,9 +211,13 @@ async function main() {
   );
 
   // Lịch gửi lời chào buổi tối
+  console.log(`[CRON SETUP] Setting up night greeting schedule: ${config.cronGreetingNight} (${config.timezone})`);
   cron.schedule(
     config.cronGreetingNight,
     () => {
+      const triggerTime = new Date();
+      const triggerLocalTime = triggerTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+      console.log(`[CRON TRIGGERED] Night greeting at ${triggerTime.toISOString()} / ${triggerLocalTime}`);
       sendNightGreeting().catch((error) => {
         console.error('Gửi lời chào tối thất bại:', error.message);
       });
@@ -208,7 +229,8 @@ async function main() {
   console.log(`  📋 Thông tin đầy đủ: ${config.cronTime}`);
   console.log(`  🌅 Chào buổi sáng:  ${config.cronGreetingMorning}`);
   console.log(`  🌙 Chào buổi tối:   ${config.cronGreetingNight}`);
-  console.log('Nhấn Ctrl + C để dừng.');
+  console.log(`\n[LOG READY] All cron jobs are scheduled. Waiting for triggers...`);
+  console.log('Nhấn Ctrl + C để dừng.\n');
 }
 
 main().catch((error) => {
