@@ -32,7 +32,12 @@ const config = {
 
 // Gửi lời chào, chỉ 1 dòng chào, không kèm thông tin
 async function sendGreeting(message) {
-  console.log(`[${new Date().toISOString()}] Đang gửi lời chào...`);
+  const startTime = new Date();
+  const startIso = startTime.toISOString();
+  const startLocal = startTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+  
+  console.log(`\n[SEND START] ${startIso} / ${startLocal}`);
+  console.log(`[${startIso}] Đang gửi lời chào...`);
 
   const now = new Date();
   const localTime = now.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
@@ -44,7 +49,14 @@ async function sendGreeting(message) {
     text: fullMessage
   });
 
-  console.log(`[${new Date().toISOString()}] Đã gửi lời chào thành công.`);
+  const endTime = new Date();
+  const endIso = endTime.toISOString();
+  const endLocal = endTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+  const duration = endTime - startTime;
+  
+  console.log(`[SEND END] ${endIso} / ${endLocal}`);
+  console.log(`[DURATION] ${duration}ms (${(duration/1000).toFixed(2)}s)`);
+  console.log(`[${endIso}] Đã gửi lời chào thành công.\n`);
 }
 
 // Gửi lời chào buổi sáng
@@ -59,7 +71,12 @@ async function sendNightGreeting() {
 
 // Gửi thông tin đầy đủ: Thời tiết + Vàng + Xăng
 async function sendDailyInfo() {
-  console.log(`[${new Date().toISOString()}] Đang lấy thời tiết ${config.locationName}...`);
+  const startTime = new Date();
+  const startIso = startTime.toISOString();
+  const startLocal = startTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+  
+  console.log(`\n[SEND START] ${startIso} / ${startLocal}`);
+  console.log(`[${startIso}] Đang lấy thời tiết ${config.locationName}...`);
 
   let weatherMessage = '';
 
@@ -113,13 +130,22 @@ async function sendDailyInfo() {
   const localTime = now.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
   const fullMessage = `${message}\n\n⏰ ${localTime}`;
 
+  console.log(`[${new Date().toISOString()}] Đang gửi thông báo qua Telegram...`);
+  
   await sendTelegramMessage({
     botToken: config.botToken,
     chatId: config.chatId,
     text: fullMessage
   });
 
-  console.log(`[${new Date().toISOString()}] Đã gửi thông báo đầy đủ thành công.`);
+  const endTime = new Date();
+  const endIso = endTime.toISOString();
+  const endLocal = endTime.toLocaleString('vi-VN', { timeZone: config.timezone, hour12: false });
+  const duration = endTime - startTime;
+  
+  console.log(`[SEND END] ${endIso} / ${endLocal}`);
+  console.log(`[DURATION] ${duration}ms (${(duration/1000).toFixed(2)}s)`);
+  console.log(`[${new Date().toISOString()}] Đã gửi thông báo đầy đủ thành công.\n`);
 }
 
 // Gửi theo MESSAGE_TYPE từ GitHub Actions
