@@ -2,7 +2,7 @@ name: Morning Greeting
 
 on:
   schedule:
-    - cron: "0 23 * * *" # 06:00 Việt Nam
+    - cron: "0 16 * * *" # 23:00 Việt Nam (UTC+7)
   workflow_dispatch:
 
 jobs:
