@@ -2,7 +2,7 @@ name: Night Greeting
 
 on:
   schedule:
-    - cron: "30 11 * * *" # 18:30 Việt Nam
+    - cron: "30 13 * * *" # 20:30 Việt Nam
   workflow_dispatch:
 
 jobs:
